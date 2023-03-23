@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Wait for continuous integration to finish, refreshing at a set interval, then print out the list of releases
+if ! check-installed gh https://cli.github.com/; then
+	exit 1
+fi
+
+# Do not pipe gh output to a pager
+unset PAGER
+
+get_releases() {
+	gh release list --limit=10
+}
+
+if ! [ "$(gh api '/repos/{owner}/{repo}/commits/{branch}/status' --jq='.state')" = 'pending' ]; then
+	echo 'Commit status is not "pending", so here are the ten most recent releases:'
+	get_releases
+	exit
+fi
+
+prev_releases="$(get_releases)"
+watch-ci
+# Diff, only displaying changed groups, and hiding any control characters
+diff \
+	--ignore-all-space \
+	--changed-group-format='%<%>' \
+	<(echo "$prev_releases") <(get_releases)

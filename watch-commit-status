@@ -1,0 +1,79 @@
+set -euo pipefail
+
+# Cache head commit to avoid breaking when the user makes a new commit on the branch locally
+head="$(git rev-parse HEAD)"
+api_url="/repos/{owner}/{repo}/commits/${head}/status"
+output_template='
+{{- range .statuses -}}
+	{{ " " }}
+    {{- if (eq .state "success") -}}
+        {{- autocolor "green" "▪" -}}
+    {{- else -}}
+        {{- if (eq .state "pending") -}}
+            {{- autocolor "yellow" "▪" -}}
+        {{- else -}}
+            {{- autocolor "red" "▪" -}}
+        {{- end -}}
+    {{- end -}}
+    {{ " " }}
+    {{- if .target_url -}}
+        {{- hyperlink .target_url (autocolor "default+b" .context) -}}
+    {{- else -}}
+        {{- autocolor "default+b" .context -}}
+    {{- end -}}
+    {{ " " }}
+    {{- autocolor "250:default" .description -}}
+    {{- "\n"}}
+{{- end -}}'
+
+# Do not pipe gh output to a pager
+unset PAGER
+
+get_state() {
+	gh api --cache="5s" --jq='.state' "$api_url"
+}
+
+print_status() {
+	gh api --template="$output_template" "$api_url"
+}
+
+state="$(get_state)"
+print_status
+
+while [ "$state" = 'pending' ]; do
+	sleep 5
+	# Cache response so that we can immediately make the same request again with different output formatting
+	if ! state="$(get_state)"; then
+		echo 'error: failed to get commit state'
+		exit 1
+	fi
+
+	if ! [ "$state" = 'pending' ]; then
+		# Account for gaps in status check execution by checking again
+		sleep 5
+		state="$(get_state)"
+		if ! [ "$state" = 'pending' ]; then
+			break
+		fi
+	fi
+
+	tput clear
+
+	print_status
+done
+
+project="$(basename "$(pwd)")"
+
+if [ "$state" = 'success' ]; then
+	message="CI for $project succeeded."
+elif [ "$state" = 'failure' ]; then
+	message="CI for $project failed."
+else
+	message="Something unexpected happened in CI for $project."
+fi
+
+if [[ "$OSTYPE" == darwin* ]]; then
+	osascript -e "display notification \"$message\" with title \"gh-watch\""
+elif command -v notify-send >/dev/null; then
+	notify-send 'gh-watch' "$message"
+fi

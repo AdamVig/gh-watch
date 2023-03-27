@@ -76,6 +76,10 @@ fi
 
 if [[ "$OSTYPE" == darwin* ]]; then
 	osascript -e "display notification \"$message\" with title \"gh-watch\""
-elif command -v notify-send >/dev/null; then
-	notify-send 'gh-watch' "$message"
+elif [[ $OSTYPE == *linux* ]]; then
+	if command -v notify-send >/dev/null; then
+		notify-send 'gh-watch' "$message"
+	else
+		echo -e 'warning: failed to create an OS-level notification with "notify-send", you may need to install \e]8;;https://gitlab.gnome.org/GNOME/libnotify\e\\libnotify-bin\e]8;;\e\\ '
+	fi
 fi

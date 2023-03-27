@@ -2,47 +2,18 @@
 
 set -euo pipefail
 
+_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+
 # Cache head commit to avoid breaking when the user makes a new commit on the branch locally
 head="$(git rev-parse HEAD)"
 api_url="/repos/{owner}/{repo}/commits/${head}/status"
-output_template='
-{{- range .statuses -}}
-	{{ " " }}
-    {{- if (eq .state "success") -}}
-        {{- autocolor "green" "▪" -}}
-    {{- else -}}
-        {{- if (eq .state "pending") -}}
-            {{- autocolor "yellow" "▪" -}}
-        {{- else -}}
-            {{- autocolor "red" "▪" -}}
-        {{- end -}}
-    {{- end -}}
-    {{ " " }}
-    {{- if .target_url -}}
-        {{- hyperlink .target_url (autocolor "default+b" .context) -}}
-    {{- else -}}
-        {{- autocolor "default+b" .context -}}
-    {{- end -}}
-    {{ " " }}
-    {{- autocolor "250:default" .description -}}
-    {{- "\n"}}
-{{- else -}}
-	 {{ "No statuses" }}
-{{- end -}}'
-
-# Do not pipe gh output to a pager
-unset PAGER
 
 get_state() {
 	gh api --cache="5s" --jq='.state' "$api_url"
 }
 
-print_status() {
-	gh api --template="$output_template" "$api_url"
-}
-
 state="$(get_state)"
-print_status
+"$_dir"/print-commit-status
 
 while [ "$state" = 'pending' ]; do
 	sleep 5
@@ -63,7 +34,7 @@ while [ "$state" = 'pending' ]; do
 
 	tput clear
 
-	print_status
+	"$_dir"/print-commit-status
 done
 
 project="$(basename "$(pwd)")"

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Cache head commit to avoid breaking when the user makes a new commit on the branch locally
+head="$(git rev-parse HEAD)"
+api_url="/repos/{owner}/{repo}/commits/${head}/status"
+output_template='
+{{- range .statuses -}}
+	{{ " " }}
+    {{- if (eq .state "success") -}}
+        {{- autocolor "green" "▪" -}}
+    {{- else -}}
+        {{- if (eq .state "pending") -}}
+            {{- autocolor "yellow" "▪" -}}
+        {{- else -}}
+            {{- autocolor "red" "▪" -}}
+        {{- end -}}
+    {{- end -}}
+    {{ " " }}
+    {{- if .target_url -}}
+        {{- hyperlink .target_url (autocolor "default+b" .context) -}}
+    {{- else -}}
+        {{- autocolor "default+b" .context -}}
+    {{- end -}}
+    {{ " " }}
+    {{- autocolor "250:default" .description -}}
+    {{- "\n"}}
+{{- else -}}
+	 {{ "No statuses" }}
+	 {{- "\n"}}
+{{- end -}}'
+
+# Do not pipe gh output to a pager
+unset PAGER
+
+exec gh api --template="$output_template" "$api_url"

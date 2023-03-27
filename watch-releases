@@ -11,7 +11,7 @@ get_releases() {
 	gh release list --limit=10
 }
 
-if [[ "$(get_releases | wc -l)" -eq 0 ]]; then
+if [ -z "$(get_releases)" ]; then
 	echo 'This repository has no releases'
 	exit
 fi

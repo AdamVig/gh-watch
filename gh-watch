@@ -4,8 +4,8 @@ set -euo pipefail
 
 _dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
-if [[ " $@ " =~ " -r " ]] || [[ " $@ " =~ " --release " ]]; then
-    exec "$_dir"/watch-releases
+if [[ " $* " =~ " -r " ]] || [[ " $* " =~ " --release " ]]; then
+	exec "$_dir"/watch-releases
 else
-    exec "$_dir"/watch-commit-status
+	exec "$_dir"/watch-commit-status
 fi

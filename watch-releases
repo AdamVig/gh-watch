@@ -11,6 +11,11 @@ get_releases() {
 	gh release list --limit=10
 }
 
+if [[ "$(get_releases | wc -l)" -eq 0 ]]; then
+	echo 'This repository has no releases'
+	exit
+fi
+
 if ! [ "$(gh api '/repos/{owner}/{repo}/commits/{branch}/status' --jq='.state')" = 'pending' ]; then
 	echo 'Commit status is not "pending", so here are the ten most recent releases:'
 	get_releases

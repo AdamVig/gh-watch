@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -euo pipefail
 
 # Cache head commit to avoid breaking when the user makes a new commit on the branch locally

@@ -26,6 +26,8 @@ output_template='
     {{ " " }}
     {{- autocolor "250:default" .description -}}
     {{- "\n"}}
+{{- else -}}
+	 {{ "No statuses" }}
 {{- end -}}'
 
 # Do not pipe gh output to a pager

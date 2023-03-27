@@ -4,7 +4,8 @@ A GitHub (`gh`) CLI extension to watch commit statuses and releases.
 
 - Displays statuses with a visual indicator and a link to details about the status
 - Sends an OS-level notification when the commit status is no longer "pending"
-- With the optional `--release`/`-r` parameter, shows new releases
+- With the optional `--release`/`-r` parameter, shows new releases when the status is no longer "pending"
+- With the optional `--branch` parameter, watches a branch instead of a specific commit
 
 ![Screenshot of gh-watch](./screenshot.png)
 
@@ -26,4 +27,6 @@ gh watch
 
 gh watch --release
 gh watch -r
+
+gh watch --branch
 ```

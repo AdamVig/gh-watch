@@ -6,6 +6,8 @@ _dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 if [[ " $* " =~ " -r " ]] || [[ " $* " =~ " --release " ]]; then
 	exec "$_dir"/watch-releases
+elif [[ " $* " =~ " --branch " ]]; then
+	exec "$_dir"/watch-branch
 else
 	exec "$_dir"/watch-commit-status
 fi

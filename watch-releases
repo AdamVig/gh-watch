@@ -2,10 +2,7 @@
 
 set -euo pipefail
 
-# Wait for continuous integration to finish, refreshing at a set interval, then print out the list of releases
-if ! check-installed gh https://cli.github.com/; then
-	exit 1
-fi
+_dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 
 # Do not pipe gh output to a pager
 unset PAGER
@@ -21,7 +18,7 @@ if ! [ "$(gh api '/repos/{owner}/{repo}/commits/{branch}/status' --jq='.state')"
 fi
 
 prev_releases="$(get_releases)"
-watch-ci
+"$_dir"/watch-commit-status
 # Diff, only displaying changed groups, and hiding any control characters
 diff \
 	--ignore-all-space \

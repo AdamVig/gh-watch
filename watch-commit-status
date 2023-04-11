@@ -37,9 +37,12 @@ while [ "$state" = 'pending' ]; do
 	fi
 
 	tput clear
-
 	print_status
 done
+
+
+tput clear
+print_status
 
 project="$(basename "$(pwd)")"
 

@@ -24,12 +24,15 @@ fi
 
 prev_releases="$(get_releases)"
 "$_dir"/watch-commit-status
+# `diff` exits `1` when differences are found
+set +e
 # Diff, only displaying changed groups, and hiding any control characters
 diff="$(diff \
 	--ignore-all-space \
 	--changed-group-format='%<%>' \
 	<(echo "$prev_releases") <(get_releases)
 )"
+set -e
 
 if [ -z "$diff" ]; then
 	echo 'There are no new releases since running this command, so here are the ten most recent releases:'

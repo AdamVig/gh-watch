@@ -7,18 +7,27 @@ _dir="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 # Do not pipe gh output to a pager
 unset PAGER
 
-get_releases() {
+print_recent_releases() {
 	gh release list --limit=10
 }
 
-if [ -z "$(get_releases)" ]; then
+get_releases() {
+	template='
+{{- range . -}}
+  {{ " - " }}{{- .tag_name -}} {{- "\n"}}
+{{- end -}}
+'
+	gh api '/repos/{owner}/{repo}/releases' --template="$template"
+}
+
+if [ -z "$(print_recent_releases)" ]; then
 	echo 'This repository has no releases'
 	exit
 fi
 
 if ! [ "$(gh api '/repos/{owner}/{repo}/commits/{branch}/status' --jq='.state')" = 'pending' ]; then
 	echo 'Commit status is not "pending", so here are the ten most recent releases:'
-	get_releases
+	print_recent_releases
 	exit
 fi
 
@@ -35,8 +44,8 @@ diff="$(diff \
 set -e
 
 if [ -z "$diff" ]; then
-	echo 'There are no new releases since running this command, so here are the ten most recent releases:'
-	get_releases
+	echo 'There are no new releases since running this command, so here are the most recent releases:'
+	print_recent_releases
 	exit
 fi
 
